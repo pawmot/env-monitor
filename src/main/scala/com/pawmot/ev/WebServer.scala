@@ -12,9 +12,13 @@ object WebServer {
 
     val staticFilesDirPath = Conf.staticFileDirPath
 
-    val apiRoute = pathPrefix("api" / Remaining) { pathRest =>
+    val statusWsRoute = path("statusWs") {
+      handleWebSocketMessages(StatusSvc.websocketFlow)
+    }
+
+    val apiRoute = pathPrefix("api" / Remaining) { path =>
       get {
-        complete(HttpEntity(ContentTypes.`application/json`, s"""{ "path": "$pathRest" }"""))
+        complete(HttpEntity(ContentTypes.`application/json`, s"""{ "path": "$path" }"""))
       }
     }
 
@@ -29,8 +33,7 @@ object WebServer {
         }
       }
 
-    val route = apiRoute ~ staticFilesRoute
-
+    val route = apiRoute ~ statusWsRoute ~ staticFilesRoute
 
     val bindingFuture = Http().bindAndHandle(route, Conf.host, Conf.port)
 
