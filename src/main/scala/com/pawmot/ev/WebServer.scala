@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.Materializer
 
 object WebServer {
-  def startServer(implicit sys: ActorSystem, mat: Materializer) {
+  def startServer(implicit sys: ActorSystem, mat: Materializer): Unit = {
     implicit val ec = implicitly[ActorSystem].dispatcher
 
     val staticFilesDirPath = Conf.staticFileDirPath

@@ -7,5 +7,6 @@ object Main extends App {
   implicit val system = ActorSystem("env-monitor-system")
   implicit val materializer = ActorMaterializer()
 
+  StatusSvc.spinUp
   WebServer.startServer
 }
