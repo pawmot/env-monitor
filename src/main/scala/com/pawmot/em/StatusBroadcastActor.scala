@@ -10,18 +10,20 @@ import scala.language.postfixOps
 
 class StatusBroadcastActor extends Actor with ActorLogging {
   private var clients = Map[UUID, ActorRef]()
+  private var latestStatusUpdates = Map[String, JsValue]()
 
   override def receive: Receive = {
     case RegisterClient(uuid, clientHandle) =>
       log.info(s"Accepted client connection $uuid")
       clients += (uuid -> clientHandle)
-    // TODO: when the status providers are ready, request the cached status and send it to the new client.
+      latestStatusUpdates.values.foreach(clientHandle ! _)
 
     case UnregisterClient(uuid) =>
       log.info(s"Ending client connection $uuid")
       clients -= uuid
 
-    case msg@StatusUpdate(_) =>
+    case StatusUpdate(envName, msg) =>
+      latestStatusUpdates += (envName -> msg)
       clients.values.foreach(_ ! msg)
 
     case msg =>
@@ -37,5 +39,5 @@ object StatusBroadcastActor {
   case class RegisterClient(uuid: UUID, clientHandle: ActorRef) extends Event
   case class UnregisterClient(uuid: UUID) extends Event
   case object ClientMessage extends Event
-  case class StatusUpdate(msg: JsValue) extends Event
+  case class StatusUpdate(envName: String, msg: JsValue) extends Event
 }

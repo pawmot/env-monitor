@@ -7,6 +7,7 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.stream.scaladsl.{Flow, Source, _}
 import akka.stream.{FlowShape, OverflowStrategy}
 import com.pawmot.em.StatusBroadcastActor._
+import spray.json.JsValue
 
 object StatusSvc {
   private var statusBroadcastActor: ActorRef = _
@@ -22,7 +23,7 @@ object StatusSvc {
   }
 
   def websocketFlow: Flow[Message, Message, _] = {
-    val actorSrc = Source.actorRef[StatusUpdate](bufferSize = 5, overflowStrategy = OverflowStrategy.dropTail)
+    val actorSrc = Source.actorRef[JsValue](bufferSize = 5, overflowStrategy = OverflowStrategy.dropTail)
 
     Flow.fromGraph(GraphDSL.create(actorSrc) {
       implicit b => {
@@ -36,8 +37,8 @@ object StatusSvc {
             })
 
           val toWebsocket = b.add(
-            Flow[StatusUpdate].map {
-              case StatusUpdate(msg) => TextMessage(msg.toString())
+            Flow[JsValue].map {
+              msg => TextMessage(msg.toString())
             }
           )
 

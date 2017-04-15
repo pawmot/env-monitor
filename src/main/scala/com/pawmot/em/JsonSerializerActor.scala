@@ -4,8 +4,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.pawmot.em.ServiceStatus.ServiceStatus
 import com.pawmot.em.StatusBroadcastActor.StatusUpdate
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
-import spray.json._
+import spray.json.{DefaultJsonProtocol, _}
 
 class JsonSerializerActor extends Actor with JsonSupport {
   private var broadcastActor: ActorRef = _
@@ -14,8 +13,8 @@ class JsonSerializerActor extends Actor with JsonSupport {
     case ref: ActorRef =>
       broadcastActor = ref
 
-    case report @ EnvironmentStatusReport(_, _) =>
-      broadcastActor ! StatusUpdate(report.toJson)
+    case report @ EnvironmentStatusReport(envName, _) =>
+      broadcastActor ! StatusUpdate(envName, report.toJson)
   }
 }
 
@@ -24,8 +23,8 @@ object JsonSerializerActor {
 }
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val environmentStatusReportFormat: JsonFormat[EnvironmentStatusReport] = lazyFormat(jsonFormat(EnvironmentStatusReport, "name", "reports"))
-  implicit val groupStatusReportFormat: JsonFormat[GroupStatusReport] = lazyFormat(jsonFormat(GroupStatusReport, "name", "reports"))
+  implicit val environmentStatusReportFormat: JsonFormat[EnvironmentStatusReport] = lazyFormat(jsonFormat(EnvironmentStatusReport, "name", "groups"))
+  implicit val groupStatusReportFormat: JsonFormat[GroupStatusReport] = lazyFormat(jsonFormat(GroupStatusReport, "name", "services"))
   implicit val fullServiceStatusReportFormat: JsonFormat[FullServiceStatusReport] = lazyFormat(jsonFormat(FullServiceStatusReport, "name", "simpleReport", "additionalInfo"))
   implicit val simpleServiceStatusReportFormat: JsonFormat[SimpleServiceStatusReport] = lazyFormat(jsonFormat(SimpleServiceStatusReport, "status", "statusCode"))
   implicit val serviceStatusFormat: JsonFormat[ServiceStatus] = new JsonFormat[ServiceStatus] {

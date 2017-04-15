@@ -21,5 +21,5 @@ object SimpleServiceStatus {
 case class SimpleServiceStatusReport(status: ServiceStatus, statusCode: Int = -1)
 
 case class FullServiceStatusReport(name: String, simpleReport: SimpleServiceStatusReport, additionalInfo: Map[String, String])
-case class GroupStatusReport(name: String, reports: List[FullServiceStatusReport])
-case class EnvironmentStatusReport(name: String, reports: List[GroupStatusReport])
+case class GroupStatusReport(name: String, services: List[FullServiceStatusReport])
+case class EnvironmentStatusReport(name: String, groups: List[GroupStatusReport])
