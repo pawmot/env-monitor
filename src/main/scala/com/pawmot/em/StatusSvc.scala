@@ -1,4 +1,4 @@
-package com.pawmot.ev
+package com.pawmot.em
 
 import java.util.UUID
 
@@ -6,14 +6,19 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.stream.scaladsl.{Flow, Source, _}
 import akka.stream.{FlowShape, OverflowStrategy}
-import com.pawmot.ev.StatusBroadcastActor._
+import com.pawmot.em.StatusBroadcastActor._
 
 object StatusSvc {
   private var statusBroadcastActor: ActorRef = _
 
   def spinUp(implicit sys: ActorSystem): Unit = {
     statusBroadcastActor = sys.actorOf(StatusBroadcastActor.props)
-    statusBroadcastActor ! Start
+    val jsonSerializer = sys.actorOf(JsonSerializerActor.props)
+    jsonSerializer ! statusBroadcastActor
+
+    Conf.environments.foreach(env => {
+      sys.actorOf(EnvironmentMonitorActor.props) ! EnvironmentMonitorActor.Start(env, jsonSerializer)
+    })
   }
 
   def websocketFlow: Flow[Message, Message, _] = {
@@ -32,7 +37,7 @@ object StatusSvc {
 
           val toWebsocket = b.add(
             Flow[StatusUpdate].map {
-              case StatusUpdate(msg) => TextMessage(msg)
+              case StatusUpdate(msg) => TextMessage(msg.toString())
             }
           )
 

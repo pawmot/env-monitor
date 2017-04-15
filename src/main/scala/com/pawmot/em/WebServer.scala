@@ -1,12 +1,15 @@
-package com.pawmot.ev
+package com.pawmot.em
 
 import akka.actor.ActorSystem
+import akka.event.slf4j.Logger
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.Materializer
 
 object WebServer {
+  private val log = Logger(WebServer.getClass.getSimpleName)
+
   def startServer(implicit sys: ActorSystem, mat: Materializer): Unit = {
     implicit val ec = implicitly[ActorSystem].dispatcher
 
@@ -38,7 +41,7 @@ object WebServer {
     val bindingFuture = Http().bindAndHandle(route, Conf.host, Conf.port)
 
     bindingFuture.foreach(sb => {
-      println(s"Server listening at ${sb.localAddress}")
+      log.info(s"Server listening at ${sb.localAddress}")
     })
   }
 }
