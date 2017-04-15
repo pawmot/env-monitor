@@ -3,48 +3,52 @@ package com.pawmot.em
 import akka.actor.Status.Failure
 import akka.actor.{Actor, ActorLogging, Cancellable, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.headers.Connection
+import akka.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse}
 import akka.pattern.pipe
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, StreamTcpException}
-import com.pawmot.em.HttpRequesterActor.{ConnectionRefused, Timeout}
+import com.pawmot.em.HttpRequesterActor.{ConnectionRefused, Execute, Init, Timeout}
 
 class HttpRequesterActor extends Actor with ActorLogging {
-  private val http = Http(context.system)
-  private var working: Boolean = false
-  private var scheduleHandle: Cancellable = _
+  private var url: String = _
 
   import context.dispatcher
-
-  implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(context.system))
+  private implicit val sys = context.system
+  private implicit val mat: ActorMaterializer = ActorMaterializer()
 
   override def receive: Receive = {
-    case url: String =>
-      if (working) {
-        log.error(s"${HttpRequesterActor.getClass.getSimpleName} already received a URL to request!")
-      } else {
-        working = true
-        http.singleRequest(HttpRequest(uri = url)).pipeTo(self)
-        scheduleHandle = context.system.scheduler.scheduleOnce(Conf.timeout, self, Timeout)
-      }
+    case Init(url) =>
+      this.url = url
 
-    // TODO: investigate what happens when connection is refused
-    case resp@HttpResponse(_, _, _, _) =>
-      log.info("Request succeeded")
-      context.parent ! resp
-      scheduleHandle.cancel()
-      context stop self
+    case Execute =>
+      val replyTo = sender()
 
-    case Failure(_) =>
-      // TODO: check if exception is an instance of StreamTcpException
-      log.info("Request failed")
-      context.parent ! ConnectionRefused
-      scheduleHandle.cancel()
-      context stop self
+      context.actorOf(Props(new Actor {
+        Http().singleRequest(HttpRequest(uri = url).withHeaders(Connection("Keep-Alive"))).pipeTo(self)
+        private var scheduleHandle = context.system.scheduler.scheduleOnce(Conf.timeout, self, Timeout)
 
-    case Timeout =>
-      log.info("Request timed out")
-      context.parent ! Timeout
-      context stop self
+        override def receive: Receive = {
+          case resp@HttpResponse(_, _, _, _) =>
+            log.info(s"Request to $url succeeded")
+            // TODO: remove this when starting to parse the entity
+            resp.discardEntityBytes()
+            replyTo ! resp
+            scheduleHandle.cancel()
+            context stop self
+
+          case Failure(_) =>
+            // TODO: check if exception is an instance of StreamTcpException
+            log.info(s"Request to $url failed")
+            replyTo ! ConnectionRefused
+            scheduleHandle.cancel()
+            context stop self
+
+          case Timeout =>
+            log.info(s"Request to $url timed out")
+            replyTo ! Timeout
+            context stop self
+        }
+      }))
   }
 }
 

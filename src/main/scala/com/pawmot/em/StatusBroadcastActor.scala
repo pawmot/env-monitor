@@ -13,12 +13,12 @@ class StatusBroadcastActor extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case RegisterClient(uuid, clientHandle) =>
-      log.debug(s"Accepted client connection $uuid")
+      log.info(s"Accepted client connection $uuid")
       clients += (uuid -> clientHandle)
     // TODO: when the status providers are ready, request the cached status and send it to the new client.
 
     case UnregisterClient(uuid) =>
-      log.debug(s"Ending client connection $uuid")
+      log.info(s"Ending client connection $uuid")
       clients -= uuid
 
     case msg@StatusUpdate(_) =>

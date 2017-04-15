@@ -1,19 +1,22 @@
 package com.pawmot.em
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import com.pawmot.em.Conf.Service
-import com.pawmot.em.HttpRequesterActor.{ConnectionRefused, Timeout}
+import com.pawmot.em.HttpRequesterActor.{ConnectionRefused, Execute, Timeout}
 import com.pawmot.em.ServiceMonitorActor.{CheckServiceHealth, Init}
 
 class ServiceMonitorActor extends Actor {
   import SimpleServiceStatus._
 
   private var service: Service = _
+  private var requester: ActorRef = _
 
   override def receive: Receive = {
     case Init(service) =>
       this.service = service
+      requester = context.actorOf(HttpRequesterActor.props)
+      requester ! HttpRequesterActor.Init(service.healthEndpoint)
 
     case CheckServiceHealth =>
       val replyTo = sender()
@@ -35,7 +38,7 @@ class ServiceMonitorActor extends Actor {
             replyTo ! FullServiceStatusReport(service.name, timedOut, Map("healthURL" -> service.healthEndpoint))
         }
 
-        context.actorOf(HttpRequesterActor.props) ! service.healthEndpoint
+        requester ! Execute
       }))
   }
 }
