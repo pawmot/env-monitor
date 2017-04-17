@@ -8,6 +8,7 @@ import scala.language.postfixOps
 
 object Conf {
   private val conf = ConfigFactory.load()
+  private val envConf = ConfigFactory.load("envs")
 
   val host: String = conf.getString(envMonitorProp("host"))
   val port: Int = conf.getInt(envMonitorProp("port"))
@@ -25,7 +26,7 @@ object Conf {
   private def envMonitorProp(name: String) = s"env-monitor.$name"
 
   private def getEnvironments: List[Environment] = {
-    conf.getObjectList(envMonitorProp("envs")).asScala.toList
+    envConf.getObjectList(envMonitorProp("envs")).asScala.toList
       .map(obj => Environment(obj.get("name").render.replace("\"", ""), getGroups(obj.get("groups"))))
   }
 
