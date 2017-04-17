@@ -13,13 +13,13 @@ object ServiceStatus extends Enumeration {
 
 object SimpleServiceStatus {
   def healthy = SimpleServiceStatusReport(ServiceStatus.Healthy, 200)
-  def unhealthy(statusCode: StatusCode) = SimpleServiceStatusReport(ServiceStatus.Healthy, statusCode.intValue())
+  def unhealthy(statusCode: StatusCode) = SimpleServiceStatusReport(ServiceStatus.Unhealthy, statusCode.intValue())
   def unreachable = SimpleServiceStatusReport(ServiceStatus.Unreachable)
   def timedOut = SimpleServiceStatusReport(ServiceStatus.TimedOut)
 }
 
 case class SimpleServiceStatusReport(status: ServiceStatus, statusCode: Int = -1)
 
-case class FullServiceStatusReport(name: String, simpleReport: SimpleServiceStatusReport, additionalInfo: Map[String, String])
+case class FullServiceStatusReport(name: String, report: SimpleServiceStatusReport, additionalInfo: Map[String, String])
 case class GroupStatusReport(name: String, services: List[FullServiceStatusReport])
 case class EnvironmentStatusReport(name: String, groups: List[GroupStatusReport])
