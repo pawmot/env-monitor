@@ -13,7 +13,7 @@ class JsonSerializerActor extends Actor with JsonSupport {
     case ref: ActorRef =>
       broadcastActor = ref
 
-    case report @ EnvironmentStatusReport(envName, _) =>
+    case report @ EnvironmentStatusReport(envName, _, _) =>
       broadcastActor ! StatusUpdate(envName, report.toJson)
   }
 }
@@ -23,7 +23,7 @@ object JsonSerializerActor {
 }
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val environmentStatusReportFormat: JsonFormat[EnvironmentStatusReport] = lazyFormat(jsonFormat(EnvironmentStatusReport, "name", "groups"))
+  implicit val environmentStatusReportFormat: JsonFormat[EnvironmentStatusReport] = lazyFormat(jsonFormat(EnvironmentStatusReport, "name", "ordinal", "groups"))
   implicit val groupStatusReportFormat: JsonFormat[GroupStatusReport] = lazyFormat(jsonFormat(GroupStatusReport, "name", "services"))
   implicit val fullServiceStatusReportFormat: JsonFormat[FullServiceStatusReport] = lazyFormat(jsonFormat(FullServiceStatusReport, "name", "report", "additionalInfo"))
   implicit val simpleServiceStatusReportFormat: JsonFormat[SimpleServiceStatusReport] = lazyFormat(jsonFormat(SimpleServiceStatusReport, "status", "statusCode"))

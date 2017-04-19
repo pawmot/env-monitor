@@ -34,7 +34,7 @@ class EnvironmentMonitorActor extends Actor {
           case r @ GroupStatusReport(_, _) =>
             statuses.append(r)
             if (statuses.size == env.groups.size) {
-              statusReceiver ! EnvironmentStatusReport(env.name, statuses.sortBy(_.name).toList)
+              statusReceiver ! EnvironmentStatusReport(env.name, env.ordinal,  statuses.sortBy(_.name).toList)
               context stop self
             }
         }

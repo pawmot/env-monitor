@@ -19,7 +19,7 @@ object Conf {
 
   val environments: List[Environment] = getEnvironments
 
-  case class Environment(name: String, groups: List[Group])
+  case class Environment(name: String, ordinal: Int, groups: List[Group])
   case class Group(name: String, services: List[Service])
   case class Service(name: String, healthEndpoint: String)
 
@@ -27,7 +27,7 @@ object Conf {
 
   private def getEnvironments: List[Environment] = {
     envConf.getObjectList(envMonitorProp("envs")).asScala.toList
-      .map(obj => Environment(obj.get("name").render.replace("\"", ""), getGroups(obj.get("groups"))))
+      .map(obj => Environment(obj.get("name").render.replace("\"", ""), obj.get("ordinal").render().toInt, getGroups(obj.get("groups"))))
   }
 
   private def getGroups(value: ConfigValue): List[Group] = {
