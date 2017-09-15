@@ -23,3 +23,5 @@ case class SimpleServiceStatusReport(status: ServiceStatus, statusCode: Int = -1
 case class FullServiceStatusReport(name: String, report: SimpleServiceStatusReport, additionalInfo: Map[String, String])
 case class GroupStatusReport(name: String, services: List[FullServiceStatusReport])
 case class EnvironmentStatusReport(name: String, ordinal: Int, groups: List[GroupStatusReport])
+case class ProgressReport(ready: Int, total: Int)
+case class EnvironmentProgressReport(envName: String, ready: Int, total: Int)

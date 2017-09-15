@@ -2,7 +2,7 @@ name := "env-monitor"
 
 version := "0.1"
 
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.3"
 
 val typesafeAkkaGroup = "com.typesafe.akka"
 

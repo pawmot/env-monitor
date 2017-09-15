@@ -30,6 +30,8 @@ class GroupMonitorActor extends Actor {
             if (statuses.size == group.services.size) {
               replyTo ! GroupStatusReport(group.name, statuses.sortBy(_.name).toList)
               context stop self
+            } else {
+              replyTo ! ProgressReport(statuses.size, group.services.size)
             }
         }
 

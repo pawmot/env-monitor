@@ -1,13 +1,13 @@
 package com.pawmot.em
 
 import akka.actor.Status.Failure
-import akka.actor.{Actor, ActorLogging, Cancellable, Props}
+import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.http.scaladsl.model.headers.Connection
-import akka.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse}
-import akka.pattern.pipe
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings, StreamTcpException}
+import akka.stream.ActorMaterializer
 import com.pawmot.em.HttpRequesterActor.{ConnectionRefused, Execute, Init, Timeout}
+import akka.pattern._
 
 class HttpRequesterActor extends Actor with ActorLogging {
   private var url: String = _
