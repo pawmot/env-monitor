@@ -45,7 +45,7 @@ class EnvironmentMonitorActor extends Actor {
           case pr @ ProgressReport(r, t) =>
             progressReports(sender()) = pr
             val ready = progressReports.map(kvp => kvp._2.ready).sum
-            statusReceiver ! ProgressReport(ready, totalServicesNumber)
+            statusReceiver ! EnvironmentProgressReport(env.name, ready, totalServicesNumber)
         }
 
         groupMonitors.foreach(_ ! GroupMonitorActor.CheckGroupHealth)

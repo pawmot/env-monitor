@@ -1,10 +1,10 @@
 package com.pawmot.em
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.pawmot.em.Conf.Group
 import com.pawmot.em.GroupMonitorActor.{CheckGroupHealth, Init}
 
-class GroupMonitorActor extends Actor {
+class GroupMonitorActor extends Actor with ActorLogging {
   private var group: Group = _
   private var serviceMonitors: List[ActorRef] = Nil
 
@@ -28,6 +28,7 @@ class GroupMonitorActor extends Actor {
           case r @ FullServiceStatusReport(_, _, _) =>
             statuses.append(r)
             if (statuses.size == group.services.size) {
+              replyTo ! ProgressReport(statuses.size, group.services.size)
               replyTo ! GroupStatusReport(group.name, statuses.sortBy(_.name).toList)
               context stop self
             } else {
